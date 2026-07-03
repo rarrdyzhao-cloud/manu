@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今晚吃什么 · 减脂晚餐抽签</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --board: #1e332a;
+    --board-2: #24402f;
+    --chalk: #ede9dd;
+    --chalk-dim: #b9c2b6;
+    --yellow: #f2c14e;
+    --red: #d9603b;
+    --paper: #f6f1e2;
+    --paper-ink: #2b2620;
+    --line: rgba(237,233,221,0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--board);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.03), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(255,255,255,0.03), transparent 60%);
+    color: var(--chalk);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  .hero {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 58px;
+    line-height: 1;
+    margin: 0 0 10px;
+    color: var(--chalk);
+    text-shadow: 0 0 18px rgba(242,193,78,0.15);
+    font-weight: 400;
+  }
+  .sub {
+    color: var(--chalk-dim);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 28px 0 30px;
+  }
+  .chip {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--chalk-dim);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover { border-color: var(--yellow); color: var(--chalk); }
+  .chip.active {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: #2b2620;
+    font-weight: 700;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .draw-btn {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    color: var(--board);
+    background: var(--chalk);
+    border: none;
+    border-radius: 14px;
+    padding: 18px 46px;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 6px 0 #b9b39c, 0 10px 24px rgba(0,0,0,0.35);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .draw-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #b9b39c, 0 6px 14px rgba(0,0,0,0.3);
+  }
+  .draw-btn .count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    display: block;
+    margin-top: 2px;
+    color: #6b6653;
+  }
+
+  .rolling {
+    font-family: 'Space Mono', monospace;
+    color: var(--yellow);
+    font-size: 13px;
+    height: 20px;
+    margin-top: 16px;
+    letter-spacing: 0.05em;
+    opacity: 0;
+  }
+  .rolling.show { opacity: 1; }
+
+  .ticket {
+    margin-top: 34px;
+    width: 100%;
+    max-width: 460px;
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: 4px;
+    position: relative;
+    padding: 30px 28px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    opacity: 0;
+    transform: translateY(14px) rotate(0deg);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .ticket.show {
+    opacity: 1;
+    transform: translateY(0) rotate(-0.6deg);
+  }
+  .ticket::before, .ticket::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 14px;
+    background:
+      radial-gradient(circle at 8px 7px, var(--board) 6px, transparent 6.5px) repeat-x;
+    background-size: 20px 14px;
+  }
+  .ticket::before { top: -7px; }
+  .ticket::after { bottom: -7px; transform: rotate(180deg); }
+
+  .ticket-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #8b8471;
+    letter-spacing: 0.1em;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    border-bottom: 1px dashed #cfc7ab;
+    padding-bottom: 10px;
+  }
+  .tag-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: var(--red);
+    color: #fff;
+    letter-spacing: 0.03em;
+  }
+  .dish-name {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    margin: 6px 0 4px;
+    line-height: 1.25;
+  }
+  .style-line {
+    font-size: 13px;
+    color: #6b6653;
+    margin-bottom: 18px;
+  }
+
+  .rowline {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid #e4dcc4;
+    font-size: 14px;
+  }
+  .rowline .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #a89f84;
+    letter-spacing: 0.05em;
+    min-width: 56px;
+  }
+  .rowline .val { text-align: right; font-weight: 500; }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin: 18px 0 4px;
+  }
+  .stat {
+    flex: 1;
+    background: #efe8d2;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .stat .num {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--red);
+  }
+  .stat .lbl {
+    font-size: 10px;
+    color: #8b8471;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  .steps {
+    margin-top: 18px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #4a4436;
+    background: #efe8d2;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .steps b { color: var(--paper-ink); }
+
+  .again-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 26px;
+  }
+  .ghost-btn {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    color: var(--chalk-dim);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .ghost-btn:hover { color: var(--chalk); border-color: var(--yellow); }
+
+  .history {
+    margin-top: 46px;
+  }
+  .history-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--chalk-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .stubs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .stub {
+    font-size: 12px;
+    background: var(--board-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--chalk-dim);
+  }
+  .stub b { color: var(--chalk); font-weight: 500; }
+
+  .empty-hint {
+    color: var(--chalk-dim);
+    font-size: 13px;
+    text-align: center;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 44px; }
+    .ticket { padding: 24px 18px 20px; }
+    .dish-name { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">150 道减脂晚餐 · 随机抽签</div>
+    <h1>今晚吃什么</h1>
+    <div class="sub">选不出来就交给命运，抽一张今晚的菜单</div>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="stage">
+    <button class="draw-btn" id="drawBtn">
+      抽一个
+      <span class="count" id="poolCount"></span>
+    </button>
+    <div class="rolling" id="rolling">正在翻牌…</div>
+
+    <div class="ticket" id="ticket">
+      <div class="ticket-id">
+        <span id="ticketNo">NO. 000</span>
+        <span class="tag-pill" id="ticketTag">家常</span>
+      </div>
+      <div class="dish-name" id="dishName">—</div>
+      <div class="style-line" id="styleLine">—</div>
+
+      <div class="rowline">
+        <span class="label">主食</span>
+        <span class="val" id="stapleVal">—</span>
+      </div>
+      <div class="rowline">
+        <span class="label">蔬菜</span>
+        <span class="val" id="vegVal">—</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="num" id="kcalVal">—</div>
+          <div class="lbl">KCAL</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="proteinVal">—</div>
+          <div class="lbl">蛋白质 G</div>
+        </div>
+      </div>
+
+      <div class="steps" id="stepsVal">—</div>
+
+      <div class="again-row">
+        <button class="ghost-btn" id="againBtn">换一个</button>
+      </div>
+    </div>
+    <div class="empty-hint" id="emptyHint" style="display:none;">这个风味筛选下没有菜了，换个筛选试试</div>
+  </div>
+
+  <div class="history" id="historyWrap" style="display:none;">
+    <div class="history-title">最近抽过</div>
+    <div class="stubs" id="stubs"></div>
+  </div>
+</div>
+
+<script>
+const MENU = [{"id": 1, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "宫保鸡丁（鸡胸130g）", "style": "川味微辣", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 510, "protein": 48, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：鸡胸切丁腌生抽淀粉，热锅少油爆香干辣椒花生，下鸡丁炒熟，加蒜末糖醋汁收汁。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "川味"}, {"id": 2, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "黑椒鸡柳（鸡胸130g）", "style": "西式黑椒", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 510, "protein": 47, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鸡胸切条腌黑胡椒生抽，少油煎至两面微焦断生。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "西式"}, {"id": 3, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "蒜香烤鸡胸（鸡胸130g）", "style": "烤箱少油", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 460, "protein": 44, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鸡胸抹蒜末橄榄油，烤箱200℃烤15分钟中途翻面。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "特色"}, {"id": 4, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "咖喱鸡胸（鸡胸130g）", "style": "东南亚咖喱", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 460, "protein": 44, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：鸡胸块煎至变色，加咖喱粉、少量椰浆、水，小火焖10分钟。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "东南亚"}, {"id": 5, "staple": "山药150g", "staple_method": "蒸熟", "dish": "香菇蒸鸡片（鸡胸130g）", "style": "粤式清蒸", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 440, "protein": 45, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鸡胸切片与香菇同拌生抽淀粉，隔水蒸10分钟。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "粤式"}, {"id": 6, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "柠檬煎鸡胸（鸡胸130g）", "style": "地中海风味", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 380, "protein": 44, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：鸡胸煎至两面金黄，出锅挤柠檬汁、撒黑胡椒。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "西式"}, {"id": 7, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "韩式辣炒鸡胸（鸡胸130g）", "style": "韩式微辣", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 500, "protein": 49, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：鸡胸条腌韩式辣酱（减量）蒜末，热锅少油炒熟。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "韩式"}, {"id": 8, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "白切鸡胸（鸡胸130g）", "style": "粤式原味", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 440, "protein": 45, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鸡胸冷水下锅加姜片，水开转小火煮8分钟焖5分钟，切片配姜蓉蘸料。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "粤式"}, {"id": 9, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "照烧鸡胸（鸡胸130g）", "style": "日式照烧", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 600, "protein": 53, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：鸡胸煎至两面金黄，倒入自制减糖照烧汁小火收浓。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "日式"}, {"id": 10, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "泰式打抛鸡胸（鸡胸130g）", "style": "泰式罗勒", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 480, "protein": 45, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鸡胸切碎，蒜末辣椒罗勒叶快炒调味。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "东南亚"}, {"id": 11, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "红烧鸡腿（鸡腿/鸡翅150g(去皮)）", "style": "家常红烧", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 480, "protein": 38, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：鸡腿去皮焯水，少油煸姜片，加生抽少许冰糖炖20分钟收汁。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "家常"}, {"id": 12, "staple": "山药150g", "staple_method": "蒸熟", "dish": "蒜香烤鸡翅根（鸡腿/鸡翅150g(去皮)）", "style": "烤箱少油", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 460, "protein": 38, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：翅根去皮腌蒜末生抽，烤箱200℃烤15分钟。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "特色"}, {"id": 13, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "可乐鸡翅(低糖版)（鸡腿/鸡翅150g(去皮)）", "style": "家常甜咸", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 400, "protein": 37, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：鸡翅焯水，少量代糖可乐+生抽炖煮收汁。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "家常"}, {"id": 14, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "香菇炖鸡腿（鸡腿/鸡翅150g(去皮)）", "style": "家常炖煮", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 520, "protein": 42, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：鸡腿与香菇姜片同炒后加水小火炖15分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "家常"}, {"id": 15, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "咖喱鸡翅（鸡腿/鸡翅150g(去皮)）", "style": "东南亚咖喱", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 460, "protein": 38, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鸡翅煎至变色，加咖喱粉水焖15分钟。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "东南亚"}, {"id": 16, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "蒜蓉蒸鸡翅（鸡腿/鸡翅150g(去皮)）", "style": "粤式清蒸", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 620, "protein": 46, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：鸡翅改花刀，铺蒜末蒸12分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "粤式"}, {"id": 17, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "泰式青柠鸡腿（鸡腿/鸡翅150g(去皮)）", "style": "泰式酸辣", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 500, "protein": 38, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鸡腿煮熟撕块，青柠汁鱼露辣椒拌匀。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "东南亚"}, {"id": 18, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "孜然烤鸡翅（鸡腿/鸡翅150g(去皮)）", "style": "西域风味", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 530, "protein": 42, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：鸡翅腌孜然粉盐，烤箱200℃烤15分钟。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "西式"}, {"id": 19, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "啤酒鸡腿(低卡版)（鸡腿/鸡翅150g(去皮)）", "style": "家常炖煮", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 530, "protein": 40, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鸡腿焯水，少量啤酒+生抽小火炖20分钟收汁。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "家常"}, {"id": 20, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "韩式辣炖鸡腿（鸡腿/鸡翅150g(去皮)）", "style": "韩式微辣", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 480, "protein": 37, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鸡腿块与土豆胡萝卜、辣酱（减量）同炖15分钟。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "韩式"}, {"id": 21, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "番茄炖牛腩（牛肉120g）", "style": "家常炖煮", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 580, "protein": 40, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：牛腩焯水，少油炒香番茄洋葱，加牛腩水炖40分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "家常"}, {"id": 22, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "黑椒牛柳（牛肉120g）", "style": "西式煎炒", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 520, "protein": 36, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：牛柳切条腌黑胡椒生抽，热锅少油快炒至断生。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "西式"}, {"id": 23, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "蚝油牛肉（牛肉120g）", "style": "粤式快炒", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 680, "protein": 44, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：牛肉薄片腌生抽淀粉，热锅少油快炒加蚝油调味。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "粤式"}, {"id": 24, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "孜然烤牛肉粒（牛肉120g）", "style": "西域风味", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 560, "protein": 36, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：牛肉粒腌孜然粉，少油煎至变色。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "西式"}, {"id": 25, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "咖喱牛肉粒（牛肉120g）", "style": "东南亚咖喱", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 590, "protein": 40, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：牛肉粒煎至变色，加咖喱粉少许椰浆水焖15分钟。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "东南亚"}, {"id": 26, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "清炖牛腱片（牛肉120g）", "style": "家常炖煮", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 590, "protein": 38, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：牛腱加姜片八角小火炖1小时切薄片。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "家常"}, {"id": 27, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "韩式烤牛肉（牛肉120g）", "style": "韩式烧烤风味", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 540, "protein": 35, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：牛肉片用梨汁蒜末生抽腌20分钟，少油煎熟。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "韩式"}, {"id": 28, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "干煸牛肉丝（牛肉120g）", "style": "川味微辣", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 540, "protein": 36, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：牛肉丝腌淀粉，少油煸炒至干香加蒜末辣椒。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "川味"}, {"id": 29, "staple": "山药150g", "staple_method": "蒸熟", "dish": "番茄牛肉汤（牛肉120g）", "style": "家常汤菜", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 520, "protein": 36, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：番茄炒出汁，加水与牛肉片煮至断生。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 30, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "蒜香牛排(瘦切块)（牛肉120g）", "style": "西式煎烤", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 460, "protein": 35, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：牛肉切块腌蒜末黑胡椒，少油煎至喜欢的熟度。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "西式"}, {"id": 31, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "京酱肉丝（猪肉120g）", "style": "京式家常", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 450, "protein": 33, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：猪里脊切丝腌制，少油炒制加甜面酱（减半）收汁。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "家常"}, {"id": 32, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "木须肉（猪肉120g）", "style": "家常合炒", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 480, "protein": 36, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：黑木耳鸡蛋瘦肉丝分别炒熟合炒调味。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "家常"}, {"id": 33, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "蒜香烤猪里脊（猪肉120g）", "style": "烤箱少油", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 480, "protein": 35, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：里脊腌蒜末生抽，烤箱200℃烤15分钟。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "特色"}, {"id": 34, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "蒜蓉粉丝蒸肉片（猪肉120g）", "style": "粤式清蒸", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 420, "protein": 32, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：里脊切片粉丝垫底，蒜末铺面蒸10分钟。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "粤式"}, {"id": 35, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "黑椒猪柳（猪肉120g）", "style": "西式煎炒", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 440, "protein": 32, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：里脊切条腌黑胡椒，少油煎至断生。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "西式"}, {"id": 36, "staple": "山药150g", "staple_method": "蒸熟", "dish": "回锅肉(瘦肉版)（猪肉120g）", "style": "川味家常", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 400, "protein": 33, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：猪瘦肉片煮熟切片，少油炒香豆瓣酱（减量）配青蒜。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "川味"}, {"id": 37, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "番茄炒肉片（猪肉120g）", "style": "家常快炒", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 360, "protein": 32, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：番茄炒出汁，加瘦肉片炒熟调味。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "家常"}, {"id": 38, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "蒜苔炒肉丝（猪肉120g）", "style": "家常快炒", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 480, "protein": 37, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：蒜苔切段与腌好的肉丝同炒调味。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "家常"}, {"id": 39, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "菠萝咕咾肉(少糖版)（猪肉120g）", "style": "粤式酸甜", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 410, "protein": 33, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：瘦肉块煎熟，菠萝块+少糖番茄汁快炒收汁。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "粤式"}, {"id": 40, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "清炖猪里脊汤（猪肉120g）", "style": "家常汤菜", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 560, "protein": 41, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：里脊切片与姜片同煮至断生调味。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "家常"}, {"id": 41, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "白灼虾（虾类150g）", "style": "粤式清淡", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 380, "protein": 40, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：虾入姜片水中烫熟，蘸姜蒜生抽汁。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "粤式"}, {"id": 42, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "蒜香烤虾（虾类150g）", "style": "烤箱少油", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 400, "protein": 40, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：虾腌蒜末橄榄油黑胡椒，烤箱200℃烤8-10分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "特色"}, {"id": 43, "staple": "山药150g", "staple_method": "蒸熟", "dish": "泰式柠檬虾（虾类150g）", "style": "泰式酸辣", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 360, "protein": 41, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：虾煮熟，柠檬汁鱼露蒜末辣椒调汁拌匀。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "东南亚"}, {"id": 44, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "蒜蓉粉丝蒸虾（虾类150g）", "style": "粤式清蒸", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 320, "protein": 40, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：虾开背粉丝垫底铺蒜末蒸6-8分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "粤式"}, {"id": 45, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "番茄浓汤煮虾仁（虾类150g）", "style": "家常汤菜", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 440, "protein": 45, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：番茄炒出汁煮开，下虾仁煮至变色。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "家常"}, {"id": 46, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "避风塘虾（虾类150g）", "style": "港式风味", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 370, "protein": 41, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：虾煎至变色，蒜末（少油炸香）撒面调味。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "特色"}, {"id": 47, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "黑椒虾球（虾类150g）", "style": "西式煎炒", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 520, "protein": 49, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：虾仁腌黑胡椒，少油快炒断生。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "西式"}, {"id": 48, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "韩式辣炒虾仁（虾类150g）", "style": "韩式微辣", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 410, "protein": 41, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：虾仁腌辣酱（减量）蒜末，少油快炒。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "韩式"}, {"id": 49, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "虾仁蒸蛋（虾类150g）", "style": "家常清蒸", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 440, "protein": 44, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：鸡蛋液加温水打散过筛，虾仁摆入蒸10分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "家常"}, {"id": 50, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "蒜蓉烤虾串（虾类150g）", "style": "烤箱少油", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 440, "protein": 43, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：虾穿串刷少油蒜末，烤箱200℃烤8分钟。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "特色"}, {"id": 51, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "清蒸鲈鱼（白肉鱼140g）", "style": "粤式清蒸", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 280, "protein": 29, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：鲈鱼打花刀铺姜葱，大火蒸8分钟淋蒸鱼豉油。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "粤式"}, {"id": 52, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "香煎鳕鱼（白肉鱼140g）", "style": "西式煎", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 400, "protein": 34, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：鳕鱼块腌盐黑胡椒，少油煎至两面金黄。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "西式"}, {"id": 53, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "酸菜鱼(瘦肉版)（白肉鱼140g）", "style": "川味酸辣", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 340, "protein": 30, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鱼片腌蛋清淀粉，少油炒酸菜煮开下鱼片煮熟。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "川味"}, {"id": 54, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "味噌烤鳕鱼（白肉鱼140g）", "style": "日式风味", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 500, "protein": 38, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：鳕鱼薄涂味噌静置10分钟，烤箱200℃烤12分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "日式"}, {"id": 55, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "蒜蓉粉丝蒸龙利鱼（白肉鱼140g）", "style": "粤式清蒸", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 380, "protein": 30, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：龙利鱼片粉丝垫底蒜末铺面蒸6分钟。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "粤式"}, {"id": 56, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "番茄煮罗非鱼（白肉鱼140g）", "style": "家常汤煮", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 410, "protein": 34, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：番茄炒出汁煮开，下鱼片煮至断生。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "家常"}, {"id": 57, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "剁椒鱼头(减辣少油版)（白肉鱼140g）", "style": "湘式风味", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 410, "protein": 32, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鱼头铺剁椒（减量），大火蒸10分钟。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "特色"}, {"id": 58, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "柠檬黄油煎鱼（白肉鱼140g）", "style": "西式煎", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 360, "protein": 29, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鱼片少油煎熟，柠檬汁少许黄油提味。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "西式"}, {"id": 59, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "豆豉蒸鱼（白肉鱼140g）", "style": "粤式清蒸", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 360, "protein": 30, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：鱼片铺豆豉蒜末蒸8分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "粤式"}, {"id": 60, "staple": "山药150g", "staple_method": "蒸熟", "dish": "鱼汤煮时蔬（白肉鱼140g）", "style": "家常汤菜", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 340, "protein": 30, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鱼骨鱼片加姜片煮汤，起锅前调味。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "家常"}, {"id": 61, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "香煎三文鱼配柠檬（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "西式煎", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 620, "protein": 37, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：三文鱼盐煎至两面金黄，挤柠檬汁提味。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "西式"}, {"id": 62, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "蒜香烤三文鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "烤箱少油", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 510, "protein": 29, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：三文鱼腌蒜末黑胡椒，烤箱200℃烤12分钟。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "特色"}, {"id": 63, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "味噌三文鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "日式风味", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 540, "protein": 32, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：三文鱼涂薄味噌，烤箱烤12分钟。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "日式"}, {"id": 64, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "香煎秋刀鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "日式家常", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 540, "protein": 31, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：秋刀鱼少油煎至两面金黄，撒盐提味。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "日式"}, {"id": 65, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "照烧三文鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "日式照烧", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 480, "protein": 28, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：三文鱼煎熟，倒减糖照烧汁小火收浓。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "日式"}, {"id": 66, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "三文鱼刺身(简易低脂拌)（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "日式生食风味", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 500, "protein": 28, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：三文鱼切薄片，酱油芥末少许拌食（注意食材新鲜度）。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "日式"}, {"id": 67, "staple": "山药150g", "staple_method": "蒸熟", "dish": "香草烤三文鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "西式香草", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 460, "protein": 29, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：三文鱼撒迷迭香黑胡椒，烤箱200℃烤12分钟。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "西式"}, {"id": 68, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "蒜蓉蒸秋刀鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "粤式清蒸", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 420, "protein": 28, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：秋刀鱼铺蒜末蒸10分钟。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "粤式"}, {"id": 69, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "三文鱼时蔬汤（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "家常汤菜", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 540, "protein": 33, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：三文鱼块与姜片时蔬同煮成汤。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "家常"}, {"id": 70, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "黑椒三文鱼（深海鱼(三文鱼/秋刀鱼等)120g）", "style": "西式煎炒", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 470, "protein": 29, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：三文鱼块腌黑胡椒，少油煎熟。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "西式"}, {"id": 71, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "干煸鱿鱼须（鱿鱼/章鱼等头足类150g）", "style": "川味微辣", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 430, "protein": 32, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鱿鱼须焯水，少油煸干辣椒炒香。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "川味"}, {"id": 72, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "白灼鱿鱼圈（鱿鱼/章鱼等头足类150g）", "style": "粤式清淡", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 380, "protein": 29, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鱿鱼圈焯水断生，蘸醋蒜汁。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "粤式"}, {"id": 73, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "黑椒鱿鱼圈（鱿鱼/章鱼等头足类150g）", "style": "西式煎炒", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 380, "protein": 30, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：鱿鱼圈腌黑胡椒，少油快炒。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "西式"}, {"id": 74, "staple": "山药150g", "staple_method": "蒸熟", "dish": "蒜蓉粉丝蒸鱿鱼（鱿鱼/章鱼等头足类150g）", "style": "粤式清蒸", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 360, "protein": 30, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鱿鱼切花刀粉丝垫底蒸6分钟。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "粤式"}, {"id": 75, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "韩式辣炒鱿鱼（鱿鱼/章鱼等头足类150g）", "style": "韩式微辣", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 300, "protein": 29, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：鱿鱼腌辣酱（减量），少油快炒。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "韩式"}, {"id": 76, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "泰式柠檬鱿鱼（鱿鱼/章鱼等头足类150g）", "style": "泰式酸辣", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 420, "protein": 34, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：鱿鱼焯熟，柠檬汁鱼露拌匀。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "东南亚"}, {"id": 77, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "蒜香烤八爪鱼（鱿鱼/章鱼等头足类150g）", "style": "烤箱少油", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 360, "protein": 30, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：八爪鱼腌蒜末橄榄油，烤箱200℃烤10分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "特色"}, {"id": 78, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "番茄煮鱿鱼（鱿鱼/章鱼等头足类150g）", "style": "家常汤煮", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 520, "protein": 38, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：番茄炒出汁，下鱿鱼煮至断生。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "家常"}, {"id": 79, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "五香卤鱿鱼(少盐版)（鱿鱼/章鱼等头足类150g）", "style": "家常卤味", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 400, "protein": 30, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鱿鱼用八角桂皮少盐卤汁煮10分钟。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "家常"}, {"id": 80, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "鱿鱼时蔬串（鱿鱼/章鱼等头足类150g）", "style": "烤箱少油", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 430, "protein": 34, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：鱿鱼与彩椒穿串，少油刷面烤箱烤8分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "特色"}, {"id": 81, "staple": "山药150g", "staple_method": "蒸熟", "dish": "蒜蓉粉丝蒸生蚝（生蚝/带子/扇贝150g）", "style": "粤式清蒸", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 340, "protein": 23, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：生蚝铺蒜末粉丝蒸5分钟。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "粤式"}, {"id": 82, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "蒜蓉粉丝蒸带子（生蚝/带子/扇贝150g）", "style": "粤式清蒸", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 280, "protein": 22, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：带子铺蒜末粉丝蒸5分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "粤式"}, {"id": 83, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "黑椒扇贝（生蚝/带子/扇贝150g）", "style": "西式煎炒", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 400, "protein": 27, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：扇贝腌黑胡椒，少油快煎。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "西式"}, {"id": 84, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "白灼扇贝（生蚝/带子/扇贝150g）", "style": "粤式清淡", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 340, "protein": 23, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：扇贝焯熟，蘸姜蒜生抽汁。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "粤式"}, {"id": 85, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "烤生蚝(蒜蓉少油版)（生蚝/带子/扇贝150g）", "style": "烤箱少油", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 500, "protein": 31, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：生蚝铺蒜末，烤箱200℃烤8分钟。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "特色"}, {"id": 86, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "柠檬黄油带子（生蚝/带子/扇贝150g）", "style": "西式煎", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 380, "protein": 23, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：带子少油煎熟，柠檬汁少许黄油提味。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "西式"}, {"id": 87, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "豆豉蒸扇贝（生蚝/带子/扇贝150g）", "style": "粤式清蒸", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 410, "protein": 26, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：扇贝铺豆豉蒜末蒸6分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "粤式"}, {"id": 88, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "泰式酸辣带子（生蚝/带子/扇贝150g）", "style": "泰式酸辣", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 410, "protein": 25, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：带子焯熟，柠檬汁鱼露辣椒拌匀。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "东南亚"}, {"id": 89, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "蒜香烤扇贝（生蚝/带子/扇贝150g）", "style": "烤箱少油", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 360, "protein": 22, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：扇贝腌蒜末橄榄油，烤箱烤8分钟。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "特色"}, {"id": 90, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "鲜虾扇贝双拼蒸（生蚝/带子/扇贝150g）", "style": "粤式清蒸", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 360, "protein": 22, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：扇贝与虾同蒸摆盘撒蒜末。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "粤式"}, {"id": 91, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "麻婆豆腐(瘦肉末版)（豆腐/蛋类200g或2个鸡蛋）", "style": "川味微辣", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 400, "protein": 23, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：豆腐块与瘦肉末同煮，少油少辣豆瓣酱调味。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "川味"}, {"id": 92, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "香煎豆腐排配黑椒汁（豆腐/蛋类200g或2个鸡蛋）", "style": "西式煎", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 560, "protein": 31, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：豆腐煎至两面金黄，黑椒汁淋上。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "西式"}, {"id": 93, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "番茄炒蛋（豆腐/蛋类200g或2个鸡蛋）", "style": "家常快炒", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 440, "protein": 23, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鸡蛋炒散盛出，炒番茄出汁后与鸡蛋回锅炒匀。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "家常"}, {"id": 94, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "蒜蓉蒸豆腐（豆腐/蛋类200g或2个鸡蛋）", "style": "粤式清蒸", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 470, "protein": 26, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：豆腐切片铺蒜末蒸8分钟淋生抽。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "粤式"}, {"id": 95, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "洋葱炒蛋（豆腐/蛋类200g或2个鸡蛋）", "style": "家常快炒", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 470, "protein": 25, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鸡蛋炒散盛出，洋葱炒软后与鸡蛋合炒调味。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "家常"}, {"id": 96, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "虾仁蒸蛋（豆腐/蛋类200g或2个鸡蛋）", "style": "家常清蒸", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 420, "protein": 22, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鸡蛋液加温水打散，虾仁摆入蒸10分钟。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "家常"}, {"id": 97, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "家常炖豆腐（豆腐/蛋类200g或2个鸡蛋）", "style": "家常炖煮", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 420, "protein": 22, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：豆腐块与白菜香菇同炖10分钟。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "家常"}, {"id": 98, "staple": "山药150g", "staple_method": "蒸熟", "dish": "溏心卤蛋(少盐版)（豆腐/蛋类200g或2个鸡蛋）", "style": "家常卤味", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 400, "protein": 23, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鸡蛋煮6分钟过冷水剥壳，少盐卤汁浸泡2小时。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "家常"}, {"id": 99, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "客家酿豆腐（豆腐/蛋类200g或2个鸡蛋）", "style": "客家风味", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 340, "protein": 22, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：豆腐挖空填入瘦肉末，少油煎蒸至熟。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "特色"}, {"id": 100, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "木耳炒鸡蛋（豆腐/蛋类200g或2个鸡蛋）", "style": "家常快炒", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 460, "protein": 27, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：木耳焯水与炒散的鸡蛋合炒调味。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "家常"}, {"id": 101, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "香煎鸭胸（鸭肉120g(去皮)）", "style": "西式煎", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 440, "protein": 32, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：鸭胸划十字刀，少油煎至两面微焦切片。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "西式"}, {"id": 102, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "老鸭汤(去油版)（鸭肉120g(去皮)）", "style": "家常炖汤", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 440, "protein": 30, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：鸭肉焯水，加姜片山药炖1小时撇去浮油。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "家常"}, {"id": 103, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "蒜香烤鸭胸（鸭肉120g(去皮)）", "style": "烤箱少油", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 380, "protein": 27, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鸭胸腌蒜末黑胡椒，烤箱200℃烤15分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "特色"}, {"id": 104, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "啤酒鸭(低卡版)（鸭肉120g(去皮)）", "style": "家常炖煮", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 400, "protein": 28, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：鸭肉块焯水，少量啤酒生抽炖煮收汁。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "家常"}, {"id": 105, "staple": "山药150g", "staple_method": "蒸熟", "dish": "陈皮蒸鸭（鸭肉120g(去皮)）", "style": "粤式清蒸", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 360, "protein": 28, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鸭肉块铺陈皮姜片蒸20分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "粤式"}, {"id": 106, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "卤鸭胸(少盐版)（鸭肉120g(去皮)）", "style": "家常卤味", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 320, "protein": 27, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：鸭胸少盐卤汁煮20分钟切片。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "家常"}, {"id": 107, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "黑椒鸭柳（鸭肉120g(去皮)）", "style": "西式煎炒", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 440, "protein": 32, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：鸭胸切条腌黑胡椒，少油快炒。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "西式"}, {"id": 108, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "笋干煮鸭（鸭肉120g(去皮)）", "style": "家常炖煮", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 370, "protein": 28, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鸭肉与笋干姜片同炖20分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "家常"}, {"id": 109, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "香草烤鸭胸（鸭肉120g(去皮)）", "style": "西式香草", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 520, "protein": 36, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：鸭胸撒迷迭香黑胡椒，烤箱烤15分钟。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "西式"}, {"id": 110, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "酸萝卜煮鸭（鸭肉120g(去皮)）", "style": "家常酸香", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 410, "protein": 28, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鸭肉块与酸萝卜姜片同煮15分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "家常"}, {"id": 111, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "香煎羊肉片（兔肉/羊肉120g）", "style": "西式煎", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 460, "protein": 32, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：羊肉片腌黑胡椒孜然，少油快煎断生。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "西式"}, {"id": 112, "staple": "山药150g", "staple_method": "蒸熟", "dish": "孜然烤兔肉（兔肉/羊肉120g）", "style": "西域风味", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 420, "protein": 33, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：兔肉块腌孜然粉盐，烤箱200℃烤20分钟。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "西式"}, {"id": 113, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "清炖羊肉汤（兔肉/羊肉120g）", "style": "家常炖汤", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 380, "protein": 32, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：羊肉块焯水，姜片萝卜炖40分钟撇油。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 114, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "红焖兔肉(少油版)（兔肉/羊肉120g）", "style": "家常红焖", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 500, "protein": 37, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：兔肉块焯水，少油炒香姜蒜加生抽炖30分钟。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 115, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "孜然羊肉串(烤箱版)（兔肉/羊肉120g）", "style": "西域风味", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 430, "protein": 33, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：羊肉块穿串腌孜然，烤箱200℃烤15分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "西式"}, {"id": 116, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "蒜香烤羊排(瘦肉)（兔肉/羊肉120g）", "style": "西式烤", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 580, "protein": 41, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：羊排腌蒜末黑胡椒，烤箱200℃烤20分钟。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "西式"}, {"id": 117, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "枸杞炖兔肉（兔肉/羊肉120g）", "style": "家常滋补炖", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 470, "protein": 33, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：兔肉块与枸杞姜片同炖30分钟。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "家常"}, {"id": 118, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "葱爆羊肉（兔肉/羊肉120g）", "style": "京式快炒", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 500, "protein": 36, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：羊肉片与大葱段少油快炒调味。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "特色"}, {"id": 119, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "五香卤兔肉(少盐版)（兔肉/羊肉120g）", "style": "家常卤味", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 500, "protein": 35, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：兔肉块少盐卤汁煮20分钟切块。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 120, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "番茄煮羊肉（兔肉/羊肉120g）", "style": "家常汤煮", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 440, "protein": 32, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：番茄炒出汁，下羊肉片煮至断生。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "家常"}, {"id": 121, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "泡椒牛蛙(少辣少油版)（牛蛙/鸡胗等特色食材150g）", "style": "川味酸辣", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 460, "protein": 36, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：牛蛙块焯水，少油炒泡椒姜蒜后加牛蛙快炒。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "川味"}, {"id": 122, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "香辣鸡胗(少油版)（牛蛙/鸡胗等特色食材150g）", "style": "川味微辣", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 390, "protein": 32, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鸡胗切花刀焯水，少油炒干辣椒调味。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "川味"}, {"id": 123, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "蒜香烤牛蛙腿（牛蛙/鸡胗等特色食材150g）", "style": "烤箱少油", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 540, "protein": 40, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：牛蛙腿腌蒜末，烤箱200℃烤12分钟。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "特色"}, {"id": 124, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "卤鸡胗(少盐版)（牛蛙/鸡胗等特色食材150g）", "style": "家常卤味", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 430, "protein": 32, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：鸡胗少盐卤汁煮20分钟切片。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "家常"}, {"id": 125, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "黄焖牛蛙(少油版)（牛蛙/鸡胗等特色食材150g）", "style": "家常焖煮", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 460, "protein": 36, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：牛蛙块少油炒香姜蒜，加生抽水焖15分钟。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "家常"}, {"id": 126, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "蒜蓉粉丝蒸牛蛙（牛蛙/鸡胗等特色食材150g）", "style": "粤式清蒸", "veg": "姜汁菠菜200g", "veg_method": "焯拌", "kcal": 460, "protein": 34, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：牛蛙块粉丝垫底蒜末铺面蒸10分钟。 | 蔬菜：菠菜焯水挤干，加姜末生抽麻油拌匀。", "tag": "粤式"}, {"id": 127, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "黑椒鸡胗（牛蛙/鸡胗等特色食材150g）", "style": "西式煎炒", "veg": "凉拌海带丝200g", "veg_method": "凉拌", "kcal": 400, "protein": 31, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：鸡胗切片腌黑胡椒，少油快炒。 | 蔬菜：海带丝焯水，加蒜末醋辣椒油少许拌匀。", "tag": "西式"}, {"id": 128, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "番茄煮牛蛙（牛蛙/鸡胗等特色食材150g）", "style": "家常汤煮", "veg": "蒜蓉油麦菜200g", "veg_method": "清炒", "kcal": 420, "protein": 32, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：番茄炒出汁，下牛蛙块煮至断生。 | 蔬菜：热锅少油爆香蒜末，下油麦菜快炒调味。", "tag": "家常"}, {"id": 129, "staple": "山药150g", "staple_method": "蒸熟", "dish": "干煸鸡胗（牛蛙/鸡胗等特色食材150g）", "style": "川味家常", "veg": "醋溜白菜200g", "veg_method": "清炒", "kcal": 380, "protein": 32, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鸡胗切片焯水，少油煸炒干香。 | 蔬菜：白菜片少油爆香干辣椒，加白菜、醋、少糖炒匀。", "tag": "川味"}, {"id": 130, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "清炖牛蛙汤（牛蛙/鸡胗等特色食材150g）", "style": "家常炖汤", "veg": "韭菜炒绿豆芽200g", "veg_method": "清炒", "kcal": 340, "protein": 31, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：牛蛙块与姜片同炖15分钟调味。 | 蔬菜：少油下绿豆芽快炒，加韭菜段炒断生。", "tag": "家常"}, {"id": 131, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "蟹肉炒蛋（蟹肉/虾滑等加工海鲜150g）", "style": "家常快炒", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 420, "protein": 27, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：蟹肉与鸡蛋液同炒至凝固调味。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "家常"}, {"id": 132, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "手打虾滑(自制)（蟹肉/虾滑等加工海鲜150g）", "style": "家常清鲜", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 450, "protein": 30, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：虾仁打成滑，做成丸子煮熟或蒸熟。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "家常"}, {"id": 133, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "虾滑豆腐煲(少油版)（蟹肉/虾滑等加工海鲜150g）", "style": "家常炖煮", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 450, "protein": 29, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：虾滑丸子与豆腐同煮15分钟。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "家常"}, {"id": 134, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "蟹肉粉丝煲（蟹肉/虾滑等加工海鲜150g）", "style": "家常炖煮", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 400, "protein": 26, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：蟹肉与粉丝、姜片同煮入味。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "家常"}, {"id": 135, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "虾滑娃娃菜卷（蟹肉/虾滑等加工海鲜150g）", "style": "粤式清蒸", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 400, "protein": 26, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：虾滑卷入娃娃菜叶隔水蒸10分钟。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "粤式"}, {"id": 136, "staple": "山药150g", "staple_method": "蒸熟", "dish": "蟹肉蒸蛋（蟹肉/虾滑等加工海鲜150g）", "style": "家常清蒸", "veg": "蚝油生菜200g", "veg_method": "清炒", "kcal": 380, "protein": 27, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：蟹肉与蛋液同蒸10分钟。 | 蔬菜：生菜焯水摆盘，淋少许蚝油生抽调制的汁。", "tag": "家常"}, {"id": 137, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "虾滑冬瓜汤（蟹肉/虾滑等加工海鲜150g）", "style": "家常汤菜", "veg": "蒜蓉西兰花200g", "veg_method": "清炒", "kcal": 320, "protein": 26, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：虾滑丸子与冬瓜同煮成汤。 | 蔬菜：西兰花焯水后少油爆香蒜末快炒。", "tag": "家常"}, {"id": 138, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "蟹肉炒时蔬（蟹肉/虾滑等加工海鲜150g）", "style": "家常快炒", "veg": "清炒芦笋200g", "veg_method": "清炒", "kcal": 440, "protein": 31, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：蟹肉与彩椒时蔬少油快炒。 | 蔬菜：芦笋切段，少油快炒断生调味。", "tag": "家常"}, {"id": 139, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "虾滑蒸南瓜盅（蟹肉/虾滑等加工海鲜150g）", "style": "创意清蒸", "veg": "干煸四季豆200g", "veg_method": "干煸", "kcal": 380, "protein": 27, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：南瓜挖空填入虾滑蒸15分钟。 | 蔬菜：四季豆焯水，少油煸至起皱调味。", "tag": "特色"}, {"id": 140, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "蟹肉豆腐羹（蟹肉/虾滑等加工海鲜150g）", "style": "家常汤羹", "veg": "清炒双花200g", "veg_method": "清炒", "kcal": 540, "protein": 35, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：蟹肉豆腐同煮勾薄芡调味。 | 蔬菜：西兰花菜花焯水，少油快炒调味。", "tag": "家常"}, {"id": 141, "staple": "红薯150g", "staple_method": "烤箱烤或蒸", "dish": "虾仁炒双蛋（双拼创意组合总量150g左右）", "style": "家常快炒", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 440, "protein": 32, "steps": "主食：红薯洗净带皮烤箱200℃烤25分钟或蒸熟 | 荤菜：虾仁与鸡蛋液同炒至凝固调味。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 142, "staple": "紫薯150g", "staple_method": "蒸熟", "dish": "牛肉豆腐煲（双拼创意组合总量150g左右）", "style": "家常炖煮", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 440, "protein": 32, "steps": "主食：紫薯去皮切块蒸15分钟至软 | 荤菜：牛肉片与豆腐、姜片同煲15分钟。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 143, "staple": "山药150g", "staple_method": "蒸熟", "dish": "鸡肉香菇滑蛋（双拼创意组合总量150g左右）", "style": "家常清鲜", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 420, "protein": 33, "steps": "主食：山药去皮切段蒸15分钟 | 荤菜：鸡肉丁与香菇炒熟，淋入蛋液炒至半凝固。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "家常"}, {"id": 144, "staple": "南瓜150g", "staple_method": "蒸熟", "dish": "虾仁豆腐羹（双拼创意组合总量150g左右）", "style": "家常汤羹", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 360, "protein": 32, "steps": "主食：南瓜去皮切块蒸12分钟至软糯 | 荤菜：虾仁豆腐同煮勾薄芡调味。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "家常"}, {"id": 145, "staple": "藜麦50g(干)", "staple_method": "水煮", "dish": "蒜蓉虾仁蒸滑鸡（双拼创意组合总量150g左右）", "style": "粤式清蒸", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 480, "protein": 37, "steps": "主食：藜麦淘洗后加2倍水煮15分钟至透明 | 荤菜：虾仁与鸡肉片同拌生抽淀粉，隔水蒸10分钟。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "粤式"}, {"id": 146, "staple": "糙米饭100g(熟)", "staple_method": "电饭煲蒸", "dish": "鱼片豆腐煲（双拼创意组合总量150g左右）", "style": "家常炖煮", "veg": "蒜蓉空心菜200g", "veg_method": "清炒", "kcal": 420, "protein": 33, "steps": "主食：糙米提前浸泡2小时后电饭煲正常煮 | 荤菜：鱼片与豆腐姜片同煲12分钟。 | 蔬菜：空心菜洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 147, "staple": "荞麦面80g(干)", "staple_method": "煮熟过冷水", "dish": "番茄牛肉豆腐煮（双拼创意组合总量150g左右）", "style": "家常汤煮", "veg": "蒜蓉茼蒿200g", "veg_method": "清炒", "kcal": 580, "protein": 41, "steps": "主食：荞麦面煮8分钟捞出过冷水沥干 | 荤菜：番茄炒出汁，加牛肉片豆腐块煮熟调味。 | 蔬菜：茼蒿洗净，少油爆香蒜末快炒。", "tag": "家常"}, {"id": 148, "staple": "芋头150g", "staple_method": "蒸熟", "dish": "虾滑娃娃菜鸡肉卷（双拼创意组合总量150g左右）", "style": "创意清蒸", "veg": "老醋花生木耳(少油)200g", "veg_method": "凉拌", "kcal": 460, "protein": 33, "steps": "主食：芋头去皮切块蒸15分钟 | 荤菜：虾滑与鸡肉丝卷入娃娃菜叶隔水蒸10分钟。 | 蔬菜：花生米、木耳焯水，加香醋生抽少许糖拌匀。", "tag": "特色"}, {"id": 149, "staple": "燕麦50g(干)", "staple_method": "开水或牛奶泡开", "dish": "三色蛋(虾仁+皮蛋+咸蛋+鸡蛋少油版)（双拼创意组合总量150g左右）", "style": "粤式清蒸", "veg": "手撕包菜200g", "veg_method": "清炒", "kcal": 490, "protein": 36, "steps": "主食：燕麦片开水或温牛奶泡5分钟至软 | 荤菜：三种蛋切碎与蛋液同蒸10分钟。 | 蔬菜：包菜手撕成片，少油炒软加蒜末调味。", "tag": "粤式"}, {"id": 150, "staple": "玉米1根/约200g", "staple_method": "水煮或蒸", "dish": "什锦海鲜煲（双拼创意组合总量150g左右）", "style": "家常炖煮", "veg": "凉拌黄瓜木耳200g", "veg_method": "凉拌", "kcal": 490, "protein": 35, "steps": "主食：玉米整根水煮15分钟或蒸20分钟 | 荤菜：虾仁鱿鱼圈带子与豆腐姜片同煲12分钟。 | 蔬菜：黄瓜拍碎、木耳焯水，加蒜末醋生抽拌匀。", "tag": "家常"}];
+
+const TAGS = ["全部", "家常", "川味", "粤式", "西式", "日式", "韩式", "东南亚", "特色"];
+let activeTag = "全部";
+let history = [];
+let rollTimer = null;
+
+const filtersEl = document.getElementById('filters');
+const drawBtn = document.getElementById('drawBtn');
+const againBtn = document.getElementById('againBtn');
+const ticketEl = document.getElementById('ticket');
+const rollingEl = document.getElementById('rolling');
+const poolCountEl = document.getElementById('poolCount');
+const emptyHintEl = document.getElementById('emptyHint');
+const historyWrap = document.getElementById('historyWrap');
+const stubsEl = document.getElementById('stubs');
+
+function currentPool() {
+  if (activeTag === "全部") return MENU;
+  return MENU.filter(d => d.tag === activeTag);
+}
+
+function renderFilters() {
+  filtersEl.innerHTML = "";
+  TAGS.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (tag === activeTag ? ' active' : '');
+    btn.textContent = tag;
+    btn.onclick = () => {
+      activeTag = tag;
+      renderFilters();
+      updatePoolCount();
+    };
+    filtersEl.appendChild(btn);
+  });
+}
+
+function updatePoolCount() {
+  const n = currentPool().length;
+  poolCountEl.textContent = activeTag === "全部" ? (n + " 道可抽") : (activeTag + " · " + n + " 道");
+}
+
+function fillTicket(item) {
+  document.getElementById('ticketNo').textContent = 'NO. ' + String(item.id).padStart(3, '0');
+  document.getElementById('ticketTag').textContent = item.tag;
+  document.getElementById('dishName').textContent = item.dish;
+  document.getElementById('styleLine').textContent = item.style;
+  document.getElementById('stapleVal').textContent = item.staple + '（' + item.staple_method + '）';
+  document.getElementById('vegVal').textContent = item.veg + '（' + item.veg_method + '）';
+  document.getElementById('kcalVal').textContent = item.kcal;
+  document.getElementById('proteinVal').textContent = item.protein;
+  document.getElementById('stepsVal').innerHTML = '<b>做法：</b>' + item.steps;
+}
+
+function pushHistory(item) {
+  history.unshift(item);
+  if (history.length > 6) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  if (history.length === 0) {
+    historyWrap.style.display = 'none';
+    return;
+  }
+  historyWrap.style.display = 'block';
+  stubsEl.innerHTML = "";
+  history.forEach(item => {
+    const s = document.createElement('div');
+    s.className = 'stub';
+    s.innerHTML = '<b>' + item.dish.split('（')[0] + '</b> · ' + item.staple.replace(/[0-9()g干湿]/g,'').slice(0,4);
+    stubsEl.appendChild(s);
+  });
+}
+
+function draw() {
+  const pool = currentPool();
+  if (pool.length === 0) {
+    ticketEl.classList.remove('show');
+    emptyHintEl.style.display = 'block';
+    return;
+  }
+  emptyHintEl.style.display = 'none';
+  ticketEl.classList.remove('show');
+  rollingEl.classList.add('show');
+  drawBtn.disabled = true;
+
+  let ticks = 0;
+  const maxTicks = 10;
+  clearInterval(rollTimer);
+  rollTimer = setInterval(() => {
+    const r = pool[Math.floor(Math.random() * pool.length)];
+    rollingEl.textContent = r.dish.split('（')[0] + ' · ' + r.staple.split('(')[0].replace(/[0-9g]/g,'');
+    ticks++;
+    if (ticks >= maxTicks) {
+      clearInterval(rollTimer);
+      const final = pool[Math.floor(Math.random() * pool.length)];
+      fillTicket(final);
+      rollingEl.classList.remove('show');
+      requestAnimationFrame(() => ticketEl.classList.add('show'));
+      pushHistory(final);
+      drawBtn.disabled = false;
+    }
+  }, 70);
+}
+
+drawBtn.addEventListener('click', draw);
+againBtn.addEventListener('click', draw);
+
+renderFilters();
+updatePoolCount();
+</script>
+</body>
+</html>
